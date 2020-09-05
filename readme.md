@@ -2,7 +2,7 @@
 
 *NB: Under construction*
 
-_Trl.TermDataRepresentation_ aims to create a compact human readable general-purpose data representation system based on the definition of terms. These _terms_ should be familiar to any programmer because they are basically strings, numbers, and function symbols.
+_Trl.Serialization_ aims to create a compact human readable general-purpose data representation system based on the definition of terms. These _terms_ should be familiar to any programmer because they are basically strings, numbers, and function symbols.
 
 This is exposed as a serialiser and deserialiser to make it useful for most applications.
 
@@ -63,4 +63,4 @@ Unit tests can be run using the `.\test.ps1` script. This will generate a code c
 
 # Licence
 
-Trl.TermDataRepresentation is released under the MIT open source licence. See LICENCE.txt in this repository for the full text.
+Trl.Serialization is released under the MIT open source licence. See LICENCE.txt in this repository for the full text.

@@ -128,7 +128,8 @@ Console.WriteLine(philosophers);
 Output:
 
 ```C#
-root: (Person<Born,Location,Name>(-470,Location<City,Country>("Athens","Greece"),"Socrates"),Person<Born,Location,Name>(-423,Location<City,Country>("Athens","Greece"),"Plato"),Person<Born,Location,Name>(-384,Location<City,Country>("Stagira","Greece"),"Aristotle"));
+root: (Person<Born,Location,Name>(-470,L0,"Socrates"),Person<Born,Location,Name>(-423,L0,"Plato"),Person<Born,Location,Name>(-384,Location<City,Country>("Stagira","Greece"),"Aristotle"));
+L0 => Location<City,Country>("Athens","Greece");
 ```
 
 # Installation via Nuget

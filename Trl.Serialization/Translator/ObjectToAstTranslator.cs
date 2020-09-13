@@ -6,7 +6,6 @@ using System.Numerics;
 using System.Reflection;
 using Trl.TermDataRepresentation.Database;
 using Trl.TermDataRepresentation.Database.Mutations;
-using Trl.TermDataRepresentation.Parser;
 using Trl.TermDataRepresentation.Parser.AST;
 
 namespace Trl.Serialization.Translator
@@ -18,30 +17,11 @@ namespace Trl.Serialization.Translator
         internal StatementList BuildAst<TObject>(TObject inputObject, string rootLabel)
         {
             var termDatabase = new TermDatabase();
+            Symbol root = BuildAstForObject(inputObject, termDatabase);
+            termDatabase.Writer.LabelTerm(root.TermIdentifier.Value, rootLabel);
+            termDatabase.Writer.SetAsRootTerm(root.TermIdentifier.Value);
             termDatabase.MutateDatabase(new ConvertCommonTermsToRewriteRules());
-            Symbol rootTerm = BuildAstForObject(inputObject, termDatabase);
-
-            // Dump root
-            var root = new TermStatement
-            {
-                Term = termDatabase.Reader.ReadTerm(rootTerm.TermIdentifier.Value),
-                Label = new Label
-                {
-                    Identifiers = new List<Identifier>
-                    {
-                        new Identifier
-                        {
-                            Name = rootLabel
-                        }
-                    }
-                }
-            };
-
-            return new StatementList
-            {
-                Statements = new List<TermStatement> { root },
-                RewriteRules = termDatabase.Reader.ReadAllRewriteRules()
-            };
+            return termDatabase.Reader.ReadCurrentFrame();
         }
 
         /// <summary>

@@ -4,5 +4,6 @@
     {
         public string Name { get; set; }
         public int Born { get; set; }
+        public Location Location { get; set; }
     }
 }

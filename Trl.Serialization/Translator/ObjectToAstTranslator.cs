@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using Trl.TermDataRepresentation.Database;
+using Trl.TermDataRepresentation.Database.Mutations;
 using Trl.TermDataRepresentation.Parser;
 using Trl.TermDataRepresentation.Parser.AST;
 
@@ -14,10 +15,10 @@ namespace Trl.Serialization.Translator
     {
         public const BindingFlags Bindings = BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
 
-        internal ITrlParseResult BuildAst<TObject>(TObject inputObject, string rootLabel)
+        internal StatementList BuildAst<TObject>(TObject inputObject, string rootLabel)
         {
             var termDatabase = new TermDatabase();
-
+            termDatabase.MutateDatabase(new ConvertCommonTermsToRewriteRules());
             Symbol rootTerm = BuildAstForObject(inputObject, termDatabase);
 
             // Dump root

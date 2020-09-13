@@ -25,11 +25,11 @@ namespace Trl.Serialization
             return _stringStreamSerializer.Deserialize<TObject>(streamReader, rootLabel, maxRewriteIterations);
         }
 
-        public string Serialize<TObject>(TObject inputObject, string rootLabel = "root")
+        public string Serialize<TObject>(TObject inputObject, string rootLabel = "root", bool prettyPrint = false)
         {
             using var memOut = new MemoryStream();
             using var outputStream = new StreamWriter(memOut, _encoding);
-            _stringStreamSerializer.Serialize(inputObject, outputStream, rootLabel);
+            _stringStreamSerializer.Serialize(inputObject, outputStream, rootLabel, prettyPrint);
             outputStream.Flush();
             return _encoding.GetString(memOut.ToArray());
         }

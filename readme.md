@@ -15,30 +15,30 @@ For example, let's say that you want to represent this data (JSON version):
 ```JSON
 [
     {
-        name: "Socrates",
-        born: -470,
-        location:
+        "name": "Socrates",
+        "born": -470,
+        "location":
         {
-            city: "Athens",
-            country: "Attica, Greece"
+            "city": "Athens",
+            "country": "Attica, Greece"
         }
     },
     {
-        name: "Plato",
-        born: -423,
-        location:
+        "name": "Plato",
+        "born": -423,
+        "location":
         {
-            city: "Athens",
-            country: "Greece"
+            "city": "Athens",
+            "country": "Greece"
         }
     },
     {
-        name: "Aristotle",
-        born: -384,
-        location:
+        "name": "Aristotle",
+        "born": -384,
+        "location":
         {
-            city: "Stagira",
-            country: "Greece"
+            "city": "Stagira",
+            "country": "Greece"
         }
     }
 ]

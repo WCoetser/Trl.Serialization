@@ -8,15 +8,20 @@ using Trl.TermDataRepresentation.Parser.AST;
 
 namespace Trl.Serialization.Translator
 {
+    /// <summary>
+    /// Converts a string into an object.
+    /// </summary>
     internal class StringToObjectTranslator
     {
         private readonly TrlParser _parser;
         private readonly Dictionary<(ulong, string), object> _objectCache;
+        private readonly NameAndTypeMappings _nameAndTypeMappings;
 
-        internal StringToObjectTranslator()
+        internal StringToObjectTranslator(NameAndTypeMappings nameAndTypeMappings)
         {
             _parser = new TrlParser();
             _objectCache = new Dictionary<(ulong, string), object>(EqualityComparer<ValueTuple<ulong, string>>.Default);
+            _nameAndTypeMappings = nameAndTypeMappings;
         }
 
         internal TObject BuildObject<TObject>(string inputString, string rootLabel, int maxRewriteIterations = 100000)
@@ -54,14 +59,14 @@ namespace Trl.Serialization.Translator
             };
         }
 
-        private object ConvertFromAcTerm(Type targetType, NonAcTerm nonAcTerm)
+        private object ConvertFromAcTerm(Type defaultTargetType, NonAcTerm nonAcTerm)
         {
+            var targetType = _nameAndTypeMappings.GetTypeForTermName(nonAcTerm.TermName.Name, defaultTargetType);
             if (nonAcTerm.ClassMemberMappings == null)
             {
-                // TODO: Generate class mappings based on object members
                 throw new Exception($"Unable to translate {nonAcTerm.ToSourceCode()} to object of type {targetType.FullName}: class member mappings not given.");
             }
-
+                        
             var outputObject = Activator.CreateInstance(targetType);
 
             int memberCount = nonAcTerm.ClassMemberMappings.ClassMembers.Count;
@@ -92,7 +97,7 @@ namespace Trl.Serialization.Translator
                 }
 
                 // If it got this far property or field is not found
-                throw new Exception($"Unable to find public field or property with name '{memberName}' on type '{targetType.FullName}' for binding '{arg.ToSourceCode()}'");
+                throw new Exception($"Unable to find public field or property with name '{memberName}' on type '{defaultTargetType.FullName}' for binding '{arg.ToSourceCode()}'");
             }
             return outputObject;
         }

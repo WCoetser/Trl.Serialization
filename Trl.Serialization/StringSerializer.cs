@@ -7,11 +7,13 @@ namespace Trl.Serialization
     {
         private readonly TextStreamSerializer _stringStreamSerializer;
         private readonly Encoding _encoding;
+        private readonly NameAndTypeMappings _nameAndTypeMappings;
 
-        public StringSerializer(Encoding encoding = null)
+        public StringSerializer(Encoding encoding = null, NameAndTypeMappings nameAndTypeMappings = null)
         {
             _encoding = encoding ?? Encoding.Default;
-            _stringStreamSerializer = new TextStreamSerializer(_encoding);
+            _nameAndTypeMappings = nameAndTypeMappings ?? new NameAndTypeMappings();
+            _stringStreamSerializer = new TextStreamSerializer(_nameAndTypeMappings);
         }
 
         public TObject Deserialize<TObject>(string input, string rootLabel = "root", int maxRewriteIterations = 100000)

@@ -7,15 +7,13 @@ namespace Trl.Serialization
 {
     public class TextStreamSerializer
     {
-        private readonly Encoding _encoding;
         private readonly ObjectToAstTranslator _objectToAstTranslator;
         private readonly StringToObjectTranslator _stringToObjectTranslator;
 
-        public TextStreamSerializer(Encoding encoding)
+        public TextStreamSerializer(NameAndTypeMappings customMappings)
         {
-            _encoding = encoding;
-            _objectToAstTranslator = new ObjectToAstTranslator();
-            _stringToObjectTranslator = new StringToObjectTranslator();
+            _objectToAstTranslator = new ObjectToAstTranslator(customMappings);
+            _stringToObjectTranslator = new StringToObjectTranslator(customMappings);
         }
 
         public TObject Deserialize<TObject>(StreamReader input, string rootLabel = "root", int maxRewriteIterations = 100000)

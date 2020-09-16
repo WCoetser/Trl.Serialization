@@ -10,9 +10,18 @@ using Trl.TermDataRepresentation.Parser.AST;
 
 namespace Trl.Serialization.Translator
 {
+    /// <summary>
+    /// Converts an object into an AST, which can be converted into a string.
+    /// </summary>
     internal class ObjectToAstTranslator
     {
         public const BindingFlags Bindings = BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
+        private readonly NameAndTypeMappings _nameAndTypeMappings;
+
+        public ObjectToAstTranslator(NameAndTypeMappings nameAndTypeMappings)
+        {
+            _nameAndTypeMappings = nameAndTypeMappings;
+        }
 
         internal StatementList BuildAst<TObject>(TObject inputObject, string rootLabel)
         {
@@ -96,7 +105,7 @@ namespace Trl.Serialization.Translator
             var fieldList = termDatabase.Writer.StoreTermList(fieldMappingIdentifiers.ToArray());
             metadata.Add(TermMetaData.ClassMemberMappings, fieldList);
 
-            return termDatabase.Writer.StoreNonAcTerm(type.Name, arguments.ToArray(), metadata);
+            return termDatabase.Writer.StoreNonAcTerm(_nameAndTypeMappings.GetTermNameForType(type), arguments.ToArray(), metadata);
         }
 
         private static bool IsNumeric(object inputObject)

@@ -20,7 +20,7 @@ For example, let's say that you want to represent this data (JSON version):
         "location":
         {
             "city": "Athens",
-            "country": "Attica, Greece"
+            "country": "Greece"
         }
     },
     {

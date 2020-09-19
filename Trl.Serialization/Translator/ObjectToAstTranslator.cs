@@ -41,9 +41,10 @@ namespace Trl.Serialization.Translator
         /// <returns>Unique integer mapped ID of term.</returns>
         private Symbol BuildAstForObject(object inputObject, TermDatabase termDatabase)
         {
-            if (inputObject == null)
+            var knownConstant = _nameAndTypeMappings.GetIdentifierForConstantValue(inputObject);
+            if (!string.IsNullOrWhiteSpace(knownConstant))
             {
-                return termDatabase.Writer.StoreAtom("null", SymbolType.Identifier);
+                return termDatabase.Writer.StoreAtom(knownConstant, SymbolType.Identifier);
             }
             else if (inputObject is string)
             {

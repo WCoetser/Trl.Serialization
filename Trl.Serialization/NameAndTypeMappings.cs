@@ -11,10 +11,17 @@ namespace Trl.Serialization
         private readonly Dictionary<string, Type> _termNameToTypeMappings;
         private readonly Dictionary<Type, string> _typeToTermNameMappings;
 
+        private readonly Dictionary<string, object> _identifierToConstantValue;
+        private readonly Dictionary<object, string> _constantValueToIdentifier;
+
+        public const string NULL = "null";
+
         public NameAndTypeMappings()
         {
             _termNameToTypeMappings = new Dictionary<string, Type>();
             _typeToTermNameMappings = new Dictionary<Type, string>();
+            _identifierToConstantValue = new Dictionary<string, object>();
+            _constantValueToIdentifier = new Dictionary<object, string>();
         }
 
         public void MapTermNameToType<TTargetType>(string termName)
@@ -26,11 +33,6 @@ namespace Trl.Serialization
 
             _termNameToTypeMappings.Add(termName, typeof(TTargetType));
             _typeToTermNameMappings.Add(typeof(TTargetType), termName);
-        }
-
-        public void MapIdentifierNameToConstant<T>(string identifierName, T value)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -72,12 +74,44 @@ namespace Trl.Serialization
 
         public T GetConstantValueForIdentifier<T>(string identifierName)
         {
-            throw new NotImplementedException();
+            if (StringComparer.InvariantCulture.Equals(NULL, identifierName))
+            {
+                return default;
+            }
+
+            return _identifierToConstantValue.TryGetValue(identifierName, out var value) switch
+            {
+                true => (T)value,
+                _ => default
+            };
         }
 
         public string GetIdentifierForConstantValue<T>(T constantValue)
         {
-            throw new NotImplementedException();
+            if (constantValue == null)
+            {
+                return NULL;
+            }
+
+            return _constantValueToIdentifier.TryGetValue(constantValue, out var id) switch {
+                true => id,
+                _ => null
+            };
+        }
+
+        public void MapIdentifierNameToConstant<T>(string identifierName, T value)
+        {
+            if (value == null)
+            {
+                return;
+            }
+            else if (_identifierToConstantValue.ContainsKey(identifierName))
+            {
+                throw new Exception($"Constant value already assigned for {identifierName}");
+            }
+
+            _identifierToConstantValue.Add(identifierName, value);
+            _constantValueToIdentifier.Add(value, identifierName);
         }
     }
 }

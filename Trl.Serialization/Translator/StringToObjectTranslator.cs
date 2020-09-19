@@ -134,11 +134,15 @@ namespace Trl.Serialization.Translator
 
         private object ConvertIdentifier(Type _, Identifier id)
         {
-            return id.Name switch
+            var value = _nameAndTypeMappings.GetConstantValueForIdentifier<object>(id.Name);
+            if (value == null && StringComparer.InvariantCulture.Equals("null", id.Name))
             {
-                "null" => null,
-                _ => throw new NotImplementedException()
-            };
+                return null;
+            }
+            else
+            {
+                return value ?? throw new NotImplementedException();
+            }
         }
 
         internal object ConvertToNumeric(Type targetType, string value)

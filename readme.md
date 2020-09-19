@@ -140,7 +140,7 @@ By convention, the root object being deserialized is referred to as `root`, ex.:
 root: "Hello World";
 ```
 
-Sometimes, you want to represent multiple datasets in the same file. For example, let's assume you want to be able to get Aristoteles and Plato seperately. Then you could code it like this:
+Sometimes, you want to represent multiple datasets in the same file. For example, let's assume you want to be able to get Aristotles and Plato seperately. Then you could code it like this:
 
 ```C#
 plato: Person<Name, Born, Location>("Plato", -423, athens);

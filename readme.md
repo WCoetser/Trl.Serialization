@@ -132,6 +132,31 @@ root: (Person<Born,Location,Name>(-470,L0,"Socrates"),Person<Born,Location,Name>
 L0 => Location<City,Country>("Athens","Greece");
 ```
 
+# Multiple data sets in the same document
+
+By convention, the root object being deserialized is referred to as `root`, ex.:
+
+```C#
+root: "Hello World";
+```
+
+Sometimes, you want to represent multiple datasets in the same file. For example, let's assume you want to be able to get Aristoteles and Plato seperately. Then you could code it like this:
+
+```C#
+plato: Person<Name, Born, Location>("Plato", -423, athens);
+aristotle: Person<Name, Born, Location>("Aristotle", -384, stagira);
+
+athens => Location<City, Country>("Athens", "Greece");
+stagira => Location<City, Country>("Stagira", "Greece");
+```
+
+It is now possible to get the datasets seperately:
+
+```C#
+var plato = serializer.Deserialize<Person>(INPUT_DESERIALIZE, "plato");
+var aristotle = serializer.Deserialize<Person>(INPUT_DESERIALIZE, "aristotle");
+```
+
 # Installation via Nuget
 
 See [https://www.nuget.org/packages/Trl.Serialization/](https://www.nuget.org/packages/Trl.Serialization/) for nuget package.

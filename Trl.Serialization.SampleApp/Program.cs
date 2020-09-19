@@ -56,10 +56,28 @@ stagira => Location<City, Country>(""Stagira"", ""Greece"");
             Console.WriteLine();
         }
 
+        private static void MultiDatasetDocument()
+        {
+            Console.WriteLine("Deserialize multiple datasets ...");
+            const string INPUT_DESERIALIZE =
+@"plato: Person<Name, Born, Location>(""Plato"", -423, athens);
+aristotle: Person<Name, Born, Location>(""Aristotle"", -384, stagira);
+
+athens => Location<City, Country>(""Athens"", ""Greece"");
+stagira => Location<City, Country>(""Stagira"", ""Greece"");";
+
+            StringSerializer serializer = new StringSerializer();
+            var plato = serializer.Deserialize<Person>(INPUT_DESERIALIZE, "plato");
+            Console.WriteLine($"Name = {plato.Name}, Born = {plato.Born}, Location = {plato.Location.City}, Country = {plato.Location.Country}");
+            var aristotle = serializer.Deserialize<Person>(INPUT_DESERIALIZE, "aristotle");
+            Console.WriteLine($"Name = {aristotle.Name}, Born = {aristotle.Born}, Location = {aristotle.Location.City}, Country = {aristotle.Location.Country}");
+        }
+
         static void Main()
         {
             Serialize();
             Deserialize();
+            MultiDatasetDocument();
         }
     }
 }

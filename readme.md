@@ -6,7 +6,7 @@ Why invent a new serialization system? My problems with JSON and XML are:
 * They do not support pointers
 * They cause duplication of information
 * They are not self-transformative
-* Expressing computation is enweildly
+* Expression trees are enweildly
 * Local method invocation and named constants (ex. PI)
 
 _Trl.Serialization_ aims to adress these issues and create a compact human readable general-purpose data representation system based on the definition of terms. These _terms_ should be familiar to any programmer because they are basically strings, numbers, and function symbols.

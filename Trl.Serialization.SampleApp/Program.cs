@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Trl.Serialization.SampleApp.Inheritance;
 
 namespace Trl.Serialization.SampleApp
 {
@@ -73,11 +74,25 @@ stagira => Location<City, Country>(""Stagira"", ""Greece"");";
             Console.WriteLine($"Name = {aristotle.Name}, Born = {aristotle.Born}, Location = {aristotle.Location.City}, Country = {aristotle.Location.Country}");
         }
 
+        private static void InheritanceAndNaming()
+        {
+            Console.WriteLine("Inheritance and naming ...");
+            var nameMappings = new NameAndTypeMappings();
+            var serializer = new StringSerializer(nameAndTypeMappings: nameMappings);
+            nameMappings.MapTermNameToType<Circle>("circle");
+            nameMappings.MapTermNameToType<Square>("square");
+            IShape circle = serializer.Deserialize<IShape>("root: circle<Radius>(10);");
+            IShape square = serializer.Deserialize<IShape>("root: square<Width>(10);");
+            Console.WriteLine(circle.GetType().Name);
+            Console.WriteLine(square.GetType().Name);
+        }
+
         static void Main()
         {
             Serialize();
             Deserialize();
             MultiDatasetDocument();
+            InheritanceAndNaming();
         }
     }
 }

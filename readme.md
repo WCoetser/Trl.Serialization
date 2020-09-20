@@ -158,6 +158,32 @@ var plato = serializer.Deserialize<Person>(INPUT_DESERIALIZE, "plato");
 var aristotle = serializer.Deserialize<Person>(INPUT_DESERIALIZE, "aristotle");
 ```
 
+# Custom term names and inheritance
+
+Sometimes you need to deserialise classes with inheritance. In this case you must create explicit mappings to specify which term maps to which subclass. You could, for example, have these class definitions:
+
+```C#
+public interface IShape { }
+public class Circle : IShape { public double Radius { get; set; } }
+public class Square : IShape { public double Width { get; set; } }
+```
+
+The `NameAndTypeMappings` class is used to set up mappings to subtypes:
+
+```C#
+var nameMappings = new NameAndTypeMappings();
+nameMappings.MapTermNameToType<Circle>("circle");
+nameMappings.MapTermNameToType<Square>("square");
+```
+
+These mappings can then be used with deserialization:
+
+```C#
+var serializer = new StringSerializer(nameAndTypeMappings: nameMappings);
+IShape circle = serializer.Deserialize<IShape>("root: circle<Radius>(10);");
+IShape square = serializer.Deserialize<IShape>("root: square<Width>(10);");
+```
+
 # Installation via Nuget
 
 See [https://www.nuget.org/packages/Trl.Serialization/](https://www.nuget.org/packages/Trl.Serialization/) for nuget package.

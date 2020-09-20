@@ -132,7 +132,7 @@ root: (Person<Born,Location,Name>(-470,L0,"Socrates"),Person<Born,Location,Name>
 L0 => Location<City,Country>("Athens","Greece");
 ```
 
-# Multiple data sets in the same document
+# Multiple datasets in the same document
 
 By convention, the root object being deserialized is referred to as `root`, ex.:
 

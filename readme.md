@@ -2,12 +2,13 @@
 
 Why invent a new serialization system? My problems with JSON and XML are:
 
-* They are bulky
-* They do not support pointers
-* They cause duplication of information
-* They are not self-transformative
+* Data tend to be bulky when viewed in text editors
+* No pointer support
+* Duplication of information
+* Not self-transformative
 * Expression trees are enweildly
-* Local method invocation and named constants (ex. PI)
+* No support for predefined constants (ex. Pi)
+* Only support one root element or dataset per file
 
 _Trl.Serialization_ aims to adress these issues and create a compact human readable general-purpose data representation system based on the definition of terms. These _terms_ should be familiar to any programmer because they are basically strings, numbers, and function symbols.
 
@@ -135,7 +136,7 @@ L0 => Location<City,Country>("Athens","Greece");
 
 # Multiple datasets in the same document
 
-By convention, the root object being deserialized is referred to as `root`, ex.:
+By convention, the root object being serialized/deserialized is referred to as `root`, ex.:
 
 ```C#
 root: "Hello World";
@@ -160,7 +161,7 @@ var aristotle = serializer.Deserialize<Person>(INPUT_DESERIALIZE, "aristotle");
 
 # Custom term names and inheritance
 
-Sometimes you need to deserialise classes with inheritance. In this case you must create explicit mappings to specify which term maps to which subclass. You could, for example, have these class definitions:
+Sometimes you need to deserialize classes with inheritance. In this case you must create explicit mappings to specify which term maps to which subclass. You could, for example, have these class definitions:
 
 ```C#
 public interface IShape { }
@@ -182,6 +183,25 @@ These mappings can then be used with deserialization:
 var serializer = new StringSerializer(nameAndTypeMappings: nameMappings);
 IShape circle = serializer.Deserialize<IShape>("root: circle<Radius>(10);");
 IShape square = serializer.Deserialize<IShape>("root: square<Width>(10);");
+```
+
+# Named constants
+
+Sometimes it is convenient to use named constants in instead of values. For example, let's say that you want to define PI (3.14...). This can be done with the `NameAndTypeMappings` class, ex.:
+
+```C#
+var nameMappings = new NameAndTypeMappings();
+var serializer = new StringSerializer(nameAndTypeMappings: nameMappings);
+nameMappings.MapIdentifierNameToConstant("Pi", Math.PI);
+
+var output = serializer.Serialize(Math.PI);
+Console.WriteLine(output);
+```
+
+Output:
+
+```C#
+root: Pi;
 ```
 
 # Installation via Nuget

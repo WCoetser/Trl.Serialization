@@ -72,6 +72,7 @@ stagira => Location<City, Country>(""Stagira"", ""Greece"");";
             Console.WriteLine($"Name = {plato.Name}, Born = {plato.Born}, Location = {plato.Location.City}, Country = {plato.Location.Country}");
             var aristotle = serializer.Deserialize<Person>(INPUT_DESERIALIZE, "aristotle");
             Console.WriteLine($"Name = {aristotle.Name}, Born = {aristotle.Born}, Location = {aristotle.Location.City}, Country = {aristotle.Location.Country}");
+            Console.WriteLine();
         }
 
         private static void InheritanceAndNaming()
@@ -85,6 +86,18 @@ stagira => Location<City, Country>(""Stagira"", ""Greece"");";
             IShape square = serializer.Deserialize<IShape>("root: square<Width>(10);");
             Console.WriteLine(circle.GetType().Name);
             Console.WriteLine(square.GetType().Name);
+            Console.WriteLine();
+        }
+
+        private static void NamedConstants()
+        {
+            Console.WriteLine("Named constants ...");            
+            var nameMappings = new NameAndTypeMappings();
+            var serializer = new StringSerializer(nameAndTypeMappings: nameMappings);
+            nameMappings.MapIdentifierNameToConstant("Pi", Math.PI);
+            var output = serializer.Serialize(Math.PI);
+            Console.WriteLine(output);
+            Console.WriteLine();
         }
 
         static void Main()
@@ -93,6 +106,7 @@ stagira => Location<City, Country>(""Stagira"", ""Greece"");";
             Deserialize();
             MultiDatasetDocument();
             InheritanceAndNaming();
+            NamedConstants();
         }
     }
 }

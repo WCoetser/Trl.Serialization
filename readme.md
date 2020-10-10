@@ -210,7 +210,9 @@ See [https://www.nuget.org/packages/Trl.Serialization/](https://www.nuget.org/pa
 
 # Unit Test Code Coverage
 
-Unit tests can be run using the `.\test.ps1` script. This will generate a code coverage report in the `.\UnitTestCoverageReport` folder using [Coverlet](https://github.com/tonerdo/coverlethttps://github.com/tonerdo/coverlet) and [ReportGenerator](https://github.com/danielpalme/ReportGenerator).
+**Note October 2020 - C# .NET Core Unit test coverage tools currently do not support switch expressions. This seems to be a general problem with a new C# language feature.**
+
+<!-- Unit tests can be run using the `.\test.ps1` script. This will generate a code coverage report in the `.\UnitTestCoverageReport` folder using [Coverlet](https://github.com/tonerdo/coverlethttps://github.com/tonerdo/coverlet) and [ReportGenerator](https://github.com/danielpalme/ReportGenerator). -->
 
 ![Code Coverage](code_coverage.PNG)
 

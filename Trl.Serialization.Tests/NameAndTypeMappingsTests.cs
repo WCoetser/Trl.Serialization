@@ -135,5 +135,39 @@ namespace Trl.Serialization.Tests
             Assert.Equal(value, output);
 
         }
+
+        [Fact]
+        public void ShouldCallDefaultConstructorZeroArgsNoFieldMappingsGiven()
+        {
+            // Arrange
+            var nameAndTypeMappings = new NameAndTypeMappings();
+            var serializer = new StringSerializer(nameAndTypeMappings: nameAndTypeMappings);
+            var input = "root: person();";
+
+            // Act
+            nameAndTypeMappings.MapTermNameToType<Person>("person");
+            var output = serializer.Deserialize<Person>(input);
+
+            // Assert
+            Assert.NotNull(output);
+        }
+
+        [Fact]
+        public void ShouldCallNonDefaultConstructorNoFieldMappingsGiven()
+        {
+            // Arrange
+            var nameAndTypeMappings = new NameAndTypeMappings();
+            var serializer = new StringSerializer(nameAndTypeMappings: nameAndTypeMappings);
+            var input = "root: datetime(2020,10,10);";            
+
+            // Act
+            nameAndTypeMappings.MapTermNameToType<DateTime>("datetime");
+            var output = serializer.Deserialize<DateTime>(input);
+
+            // Assert
+            Assert.Equal(2020, output.Year);
+            Assert.Equal(10, output.Month);
+            Assert.Equal(10, output.Day);
+        }
     }
 }

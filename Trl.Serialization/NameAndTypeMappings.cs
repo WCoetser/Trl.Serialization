@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
+using Trl.TermDataRepresentation.Database;
 
 namespace Trl.Serialization
 {
@@ -82,7 +84,7 @@ namespace Trl.Serialization
             return _identifierToConstantValue.TryGetValue(identifierName, out var value) switch
             {
                 true => (T)value,
-                _ => default
+                _ => throw new Exception($"Undefined identifier: {identifierName}")
             };
         }
 
@@ -113,5 +115,19 @@ namespace Trl.Serialization
             _identifierToConstantValue.Add(identifierName, value);
             _constantValueToIdentifier.Add(value, identifierName);
         }
+
+        public bool IsNumeric(object inputObject)
+            => inputObject is sbyte
+            || inputObject is byte
+            || inputObject is short
+            || inputObject is ushort
+            || inputObject is int
+            || inputObject is uint
+            || inputObject is long
+            || inputObject is ulong
+            || inputObject is BigInteger
+            || inputObject is decimal
+            || inputObject is float
+            || inputObject is double;
     }
 }

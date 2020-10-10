@@ -61,7 +61,7 @@ namespace Trl.Serialization.Translator
                 }
                 return termDatabase.Writer.StoreTermList(listMembers.ToArray());
             }
-            else if (IsNumeric(inputObject))
+            else if (_nameAndTypeMappings.IsNumeric(inputObject))
             {
                 return termDatabase.Writer.StoreAtom(Convert.ToString(inputObject), SymbolType.Number);
             }
@@ -108,19 +108,5 @@ namespace Trl.Serialization.Translator
 
             return termDatabase.Writer.StoreNonAcTerm(_nameAndTypeMappings.GetTermNameForType(type), arguments.ToArray(), metadata);
         }
-
-        private static bool IsNumeric(object inputObject)
-            => inputObject is sbyte
-            || inputObject is byte
-            || inputObject is short
-            || inputObject is ushort
-            || inputObject is int
-            || inputObject is uint
-            || inputObject is long
-            || inputObject is ulong
-            || inputObject is BigInteger
-            || inputObject is decimal
-            || inputObject is float
-            || inputObject is double;
     }
 }

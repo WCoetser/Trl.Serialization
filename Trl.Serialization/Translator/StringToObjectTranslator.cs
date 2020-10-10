@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices.ComTypes;
 using Trl.TermDataRepresentation.Database;
 using Trl.TermDataRepresentation.Parser;
 using Trl.TermDataRepresentation.Parser.AST;
@@ -61,12 +62,58 @@ namespace Trl.Serialization.Translator
 
         private object ConvertFromAcTerm(Type defaultTargetType, NonAcTerm nonAcTerm)
         {
-            var targetType = _nameAndTypeMappings.GetTypeForTermName(nonAcTerm.TermName.Name, defaultTargetType);
-            if (nonAcTerm.ClassMemberMappings == null)
+            return nonAcTerm.ClassMemberMappings switch
             {
-                throw new Exception($"Unable to translate {nonAcTerm.ToSourceCode()} to object of type {targetType.FullName}: class member mappings not given.");
+                null => ConvertFromAcTermWithoutClassMappings(defaultTargetType, nonAcTerm),
+                _ => ConvertFromAcTermWithClassMappings(defaultTargetType, nonAcTerm)
+            };            
+        }
+
+        private object ConvertFromAcTermWithoutClassMappings(Type defaultTargetType, NonAcTerm nonAcTerm)
+        {
+            var targetType = _nameAndTypeMappings.GetTypeForTermName(nonAcTerm.TermName.Name, defaultTargetType);
+
+            if (targetType == null)
+            {
+                throw new Exception($"Unable to get type mapping for term name {nonAcTerm.TermName.Name}");
             }
-                        
+
+            // Find "best match" constructor based on number of arguments and types
+            foreach (var constructor in targetType.GetConstructors())
+            {
+                if (!constructor.IsPublic)
+                {
+                    continue;
+                }
+
+                var parms = constructor.GetParameters();
+                if (parms.Length != nonAcTerm.Arguments.Count)
+                {
+                    continue;
+                }
+                try
+                {
+                    // Try to do conversion by doing arguments first
+                    object[] convertedArguments = new object[parms.Length];
+                    for (int i = 0; i < parms.Length; i++)
+                    {
+                        convertedArguments[i] = ConvertToObject(parms[i].ParameterType, nonAcTerm.Arguments[i]);
+                    }
+                    return constructor.Invoke(convertedArguments);
+                }
+                catch (Exception)
+                {
+                    // Ignore exception and try next constructor
+                }
+            }
+
+            throw new Exception($"Unable to find class constructor type {targetType.FullName} to term with name {nonAcTerm.TermName.Name}");
+        }
+
+        private object ConvertFromAcTermWithClassMappings(Type defaultTargetType, NonAcTerm nonAcTerm)
+        {
+            var targetType = _nameAndTypeMappings.GetTypeForTermName(nonAcTerm.TermName.Name, defaultTargetType);
+                       
             var outputObject = Activator.CreateInstance(targetType);
 
             int memberCount = nonAcTerm.ClassMemberMappings.ClassMembers.Count;
@@ -133,25 +180,15 @@ namespace Trl.Serialization.Translator
         }
 
         private object ConvertIdentifier(Type _, Identifier id)
-        {
-            var value = _nameAndTypeMappings.GetConstantValueForIdentifier<object>(id.Name);
-            if (value == null && StringComparer.InvariantCulture.Equals("null", id.Name))
-            {
-                return null;
-            }
-            else
-            {
-                return value ?? throw new NotImplementedException();
-            }
-        }
+            => _nameAndTypeMappings.GetConstantValueForIdentifier<object>(id.Name);
 
         internal object ConvertToNumeric(Type targetType, string value)
         {
-            if (targetType.IsAssignableFrom(typeof(object)))
+            return targetType.IsAssignableFrom(typeof(object)) switch
             {
-                return Convert.ChangeType(value, typeof(decimal));
-            }
-            return Convert.ChangeType(value, targetType);
+                true => Convert.ChangeType(value, typeof(decimal)),
+                _ => Convert.ChangeType(value, targetType)
+            };
         }
     }
 }

@@ -51,7 +51,7 @@ namespace Trl.Serialization.Tests
             var output = serializer.Serialize(input);
 
             // Assert            
-            Assert.True(StringComparer.InvariantCulture.Equals("root: ContactInfoRenamed<Name>(\"Sarel\");", output));
+            Assert.True(StringComparer.InvariantCulture.Equals("root: ContactInfoRenamed(null,\"Sarel\");", output));
         }
 
         [Fact]
@@ -168,6 +168,48 @@ namespace Trl.Serialization.Tests
             Assert.Equal(2020, output.Year);
             Assert.Equal(10, output.Month);
             Assert.Equal(10, output.Day);
+        }
+
+        [Fact]
+        public void ShouldUseLongestDeconstructorToCreateNonAcTermForExtensionMethod()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Fact]
+        public void ShouldUseLongestDeconstructorToCreateNonAcTermForNonExtensionMethod()
+        {
+            // Arrange
+            var nameAndTypeMappings = new NameAndTypeMappings();
+            var serializer = new StringSerializer(nameAndTypeMappings: nameAndTypeMappings);
+            var input = new PhoneInfo
+            {
+                Name = "Test T",
+                PhoneNumber = "1234567890"
+            };
+
+            // Act
+            nameAndTypeMappings.MapTermNameToType<PhoneInfo>("phone");
+            var output = serializer.Serialize(input);
+
+            // Assert
+            Assert.Equal("root: phone(\"1234567890\",\"Test T\");", output);
+        }
+
+
+        [Fact]
+        public void ShouldSupportDeconstructorWithZeroArgs()
+        {
+            // Arrange
+            var nameAndTypeMappings = new NameAndTypeMappings();
+            var serializer = new StringSerializer(nameAndTypeMappings: nameAndTypeMappings);
+            var input = new RandomValue();
+
+            // Act            
+            var output = serializer.Serialize(input);
+
+            // Assert
+            Assert.Equal("root: RandomValue();", output);
         }
     }
 }

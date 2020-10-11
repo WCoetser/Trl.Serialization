@@ -73,6 +73,35 @@ namespace Trl.Serialization.Translator
 
         private Symbol GenerateNonAcTerm(object inputObject, TermDatabase termDatabase)
         {
+            return GenerateNonAcTermWithoutFieldMappings(inputObject, termDatabase) 
+                ?? GenerateNonAcTermWithFieldMappings(inputObject, termDatabase);
+        }
+
+        private Symbol GenerateNonAcTermWithoutFieldMappings(object inputObject, TermDatabase termDatabase)
+        {
+            var type = inputObject.GetType();
+
+            var deconstructor = _nameAndTypeMappings.GetBestDeconstructorMethodForAcTerm(type);
+            if (deconstructor == null)
+            {
+                return null;
+            }
+
+            // Build
+            var parms = new object[deconstructor.GetParameters().Length];
+            deconstructor.Invoke(inputObject, parms);
+            List<Symbol> arguments = new List<Symbol>();
+            foreach (var valueOut in parms)
+            {
+                arguments.Add(BuildAstForObject(valueOut, termDatabase));
+            }
+            var termName = _nameAndTypeMappings.GetTermNameForType(type);
+            var metaData = new Dictionary<TermMetaData, Symbol>();
+            return termDatabase.Writer.StoreNonAcTerm(termName, arguments.ToArray(), metaData);
+        }
+
+        private Symbol GenerateNonAcTermWithFieldMappings(object inputObject, TermDatabase termDatabase)
+        {
             // Assume we are creating a non ac term in the default case
             var type = inputObject.GetType();
             var properties = type.GetProperties(Bindings)
@@ -102,7 +131,7 @@ namespace Trl.Serialization.Translator
                 }
             }
 
-            Dictionary<TermMetaData, Symbol> metadata = new Dictionary<TermMetaData, Symbol>();            
+            Dictionary<TermMetaData, Symbol> metadata = new Dictionary<TermMetaData, Symbol>();
             var fieldList = termDatabase.Writer.StoreTermList(fieldMappingIdentifiers.ToArray());
             metadata.Add(TermMetaData.ClassMemberMappings, fieldList);
 

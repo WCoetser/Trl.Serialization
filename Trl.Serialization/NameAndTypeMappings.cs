@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Trl.TermDataRepresentation.Database;
 
 namespace Trl.Serialization
@@ -72,6 +75,27 @@ namespace Trl.Serialization
                 true => retType,
                 _ => type.Name
             };
+        }
+        
+        public MethodInfo GetBestDeconstructorMethodForAcTerm(Type type)
+        {
+            // Get deconstructors
+            var deconstructors = type.GetRuntimeMethods()
+                .Where(method => method.Name == "Deconstruct"
+                    && method.IsPublic
+                    && (method.GetParameters().All(p => p.IsOut || method.GetParameters().Length == 0))
+                    && method.ReturnType.FullName == "System.Void").ToList();
+
+            if (!deconstructors.Any())
+            {
+                return null;
+            }
+
+            // Get longest deconstructor
+            var maxArgCount = deconstructors.Max(method => method.GetParameters().Length);
+            var deconstructor = deconstructors.Where(method => method.GetParameters().Length == maxArgCount)
+                                            .FirstOrDefault();
+            return deconstructor;
         }
 
         public T GetConstantValueForIdentifier<T>(string identifierName)

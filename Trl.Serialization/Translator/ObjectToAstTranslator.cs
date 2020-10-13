@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Trl.TermDataRepresentation.Database;
 using Trl.TermDataRepresentation.Database.Mutations;
 using Trl.TermDataRepresentation.Parser.AST;
@@ -86,14 +87,22 @@ namespace Trl.Serialization.Translator
             {
                 return null;
             }
+            var isExtensionMethod = deconstructor.IsDefined(typeof(ExtensionAttribute));
 
-            // Build
+            // Run deconstructor
             var parms = new object[deconstructor.GetParameters().Length];
-            deconstructor.Invoke(inputObject, parms);
-            List<Symbol> arguments = new List<Symbol>();
-            foreach (var valueOut in parms)
+            if (isExtensionMethod)
             {
-                arguments.Add(BuildAstForObject(valueOut, termDatabase));
+                parms[0] = inputObject;
+            }
+            deconstructor.Invoke(inputObject, parms);
+
+            // Extract "out" parameter values
+            List<Symbol> arguments = new List<Symbol>();
+            int startIndex = isExtensionMethod ? 1 : 0;
+            for (int i = startIndex; i < parms.Length; i++) 
+            {
+                arguments.Add(BuildAstForObject(parms[i], termDatabase));
             }
             var termName = _nameAndTypeMappings.GetTermNameForType(type);
             var metaData = new Dictionary<TermMetaData, Symbol>();

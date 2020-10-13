@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Trl.Serialization.SampleApp.ExpresionTree;
 using Trl.Serialization.SampleApp.Inheritance;
 
 namespace Trl.Serialization.SampleApp
@@ -100,6 +101,43 @@ stagira => Location<City, Country>(""Stagira"", ""Greece"");";
             Console.WriteLine();
         }
 
+        private static void ConstructorsAndDeconstructors()
+        {
+            var nameMappings = new NameAndTypeMappings();
+            var serializer = new StringSerializer(nameAndTypeMappings: nameMappings);
+            nameMappings.MapExtensionMethodDestructorsFromType(typeof(DateTimeExtensions));
+            nameMappings.MapTermNameToType<DateTime>("datetime");
+
+            Console.WriteLine("Build terms with constructors ...");
+
+            string INPUT_SERIALIZE = "root: datetime(2020,10,13);";
+            var output = serializer.Deserialize<DateTime>(INPUT_SERIALIZE);
+            Console.WriteLine($"Deserialized datetime = {output}");
+
+            Console.WriteLine("Build terms with deconstructors ...");
+
+            DateTime INPUT_DESERIALIZE = new DateTime(2020, 7, 8);
+            var outputSerialized = serializer.Serialize(INPUT_DESERIALIZE);
+            Console.WriteLine($"Deserialized datetime = {outputSerialized}");
+        }
+
+        private static void ExpresionTree()
+        {
+            Console.WriteLine("Expression trees ...");
+
+            var nameMappings = new NameAndTypeMappings();
+            var serializer = new StringSerializer(nameAndTypeMappings: nameMappings);
+
+            nameMappings.MapTermNameToType<Add>("add");
+            nameMappings.MapTermNameToType<Sub>("sub");
+            nameMappings.MapTermNameToType<Mul>("mul");
+            nameMappings.MapTermNameToType<Div>("div");
+
+            string INPUT_DESERIALIZE = "root: div(mul(4,sub(add(3,2),1)),5);";
+            IExpression expr = serializer.Deserialize<IExpression>(INPUT_DESERIALIZE);
+            Console.WriteLine($"Result = {expr.Calculate()}");
+        }
+
         static void Main()
         {
             Serialize();
@@ -107,6 +145,8 @@ stagira => Location<City, Country>(""Stagira"", ""Greece"");";
             MultiDatasetDocument();
             InheritanceAndNaming();
             NamedConstants();
+            ConstructorsAndDeconstructors();
+            ExpresionTree();
         }
     }
 }

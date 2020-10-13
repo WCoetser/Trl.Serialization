@@ -171,9 +171,44 @@ namespace Trl.Serialization.Tests
         }
 
         [Fact]
+        public void ShouldGetBestDeconstructorFromExtensionMethods()
+        {
+            // Arrange
+            NameAndTypeMappings mappings = new NameAndTypeMappings();
+
+            // Act
+            mappings.MapExtensionMethodDestructorsFromType(typeof(DateTimeExtensions));
+            var deconstructor = mappings.GetBestDeconstructorMethodForAcTerm(typeof(DateTime));
+
+            // Assert
+            Assert.Equal(4, deconstructor.GetParameters().Length);
+        }
+
+        [Fact]
+        public void ShouldThrowExceptionWhenLoadExtensionMethodDestructorsFromTypeNotExtensionClass()
+        {
+            // Arrange
+            NameAndTypeMappings mappings = new NameAndTypeMappings();
+
+            // Act & Assert
+            Assert.Throws<Exception>(() => mappings.MapExtensionMethodDestructorsFromType(typeof(DateTime)));
+        }
+
+        [Fact]
         public void ShouldUseLongestDeconstructorToCreateNonAcTermForExtensionMethod()
         {
-            throw new NotImplementedException();
+            // Arrange
+            var mappings = new NameAndTypeMappings();
+            var serializer = new StringSerializer(nameAndTypeMappings: mappings);
+            mappings.MapExtensionMethodDestructorsFromType(typeof(DateTimeExtensions));
+            mappings.MapTermNameToType<DateTime>("datetime");
+            var input = new DateTime(2020,10,13);
+
+            // Act
+            string deserialized = serializer.Serialize<DateTime>(input);
+
+            // Assert
+            Assert.Equal("root: datetime(2020,10,13);", deserialized);
         }
 
         [Fact]

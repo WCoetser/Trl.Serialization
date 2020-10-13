@@ -19,6 +19,8 @@ namespace Trl.Serialization
         private readonly Dictionary<string, object> _identifierToConstantValue;
         private readonly Dictionary<object, string> _constantValueToIdentifier;
 
+        private readonly Dictionary<Type, MethodInfo> _typeToDeconstructor;
+
         public const string NULL = "null";
 
         public NameAndTypeMappings()
@@ -27,6 +29,7 @@ namespace Trl.Serialization
             _typeToTermNameMappings = new Dictionary<Type, string>();
             _identifierToConstantValue = new Dictionary<string, object>();
             _constantValueToIdentifier = new Dictionary<object, string>();
+            _typeToDeconstructor = new Dictionary<Type, MethodInfo>();
         }
 
         public void MapTermNameToType<TTargetType>(string termName)
@@ -77,8 +80,19 @@ namespace Trl.Serialization
             };
         }
         
+        /// <summary>
+        /// Gets a deconstructor that will used to create the term arguments.
+        /// Allows 1 and 0 argument deconstructors (in C# you need at least 2 out parameters)
+        /// </summary>
+        /// <param name="type">The type being converted into a term.</param>
+        /// <returns>The deconstructor method.</returns>
         public MethodInfo GetBestDeconstructorMethodForAcTerm(Type type)
         {
+            if (_typeToDeconstructor.TryGetValue(type, out var knownDeconstructor))
+            {
+                return knownDeconstructor;
+            }
+
             // Get deconstructors
             var deconstructors = type.GetRuntimeMethods()
                 .Where(method => method.Name == "Deconstruct"
@@ -96,6 +110,44 @@ namespace Trl.Serialization
             var deconstructor = deconstructors.Where(method => method.GetParameters().Length == maxArgCount)
                                             .FirstOrDefault();
             return deconstructor;
+        }
+
+        /// <summary>
+        /// Iterates through the extension methods in a class, loading deconstructors.
+        /// </summary>
+        public void MapExtensionMethodDestructorsFromType(Type type)
+        {
+            if (!type.IsDefined(typeof(ExtensionAttribute)))
+            {
+                throw new Exception($"Class does not contain extension methods: {type.FullName}");
+            }
+            foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
+            {                
+                if (method.Name != "Deconstruct"
+                    || !method.IsDefined(typeof(ExtensionAttribute)))
+                {
+                    continue;
+                }
+
+                // Should have at least one param based on the Extension attribute
+                var parms = method.GetParameters();
+                if (parms.Skip(1).All(p => p.IsOut))
+                {
+                    var maxParamLen = 0;
+                    if (_typeToDeconstructor.TryGetValue(parms[0].ParameterType, out var deconstructor)) 
+                    {
+                        maxParamLen = deconstructor.GetParameters().Length;
+                        if (maxParamLen < parms.Length - 1)
+                        {
+                            _typeToDeconstructor[parms[0].ParameterType] = method;
+                        }
+                    }
+                    else
+                    {
+                        _typeToDeconstructor.Add(parms[0].ParameterType, method);
+                    }
+                }
+            }
         }
 
         public T GetConstantValueForIdentifier<T>(string identifierName)

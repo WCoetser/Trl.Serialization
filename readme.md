@@ -204,6 +204,71 @@ Output:
 root: Pi;
 ```
 
+# Term serialization and deserialization using constructors and deconstructors
+
+Sometimes you need to create objects by invoking their constructors. In this scenario, you need to not specify a class member mapping list. For example, you may want to represent a .NET `DateTime` object like this:
+
+```C#
+root: datetime(2020,10,13);
+```
+
+Constructors will automatically be invoked when no class member mappings are given. This code can be used for the deserialization:
+
+```C#
+string INPUT_SERIALIZE = "root: datetime(2020,10,13);";
+var output = serializer.Deserialize<DateTime>(INPUT_SERIALIZE);
+```
+
+Serialization is the opposite of this. During serialization we need something that is like a constructor for classes, but that gives you the constructor parameters as outputs. A neat new feature that fits this description very well is _deconstructors_, which were introduced in C# 7. Deconstructors can be written in classes or in extension methods. This allows us to create a deconstructor for the .NET build-in `DateTime` type:
+
+```C#
+public static class DateTimeExtensions
+{
+    public static void Deconstruct(this DateTime dateTime, out int year, out int month, out int day)
+    {
+        year = dateTime.Year;
+        month = dateTime.Month;
+        day = dateTime.Day;
+    }
+}
+```
+
+.NET deconstructors must have at least 2 _out_ arguments. In _Trl.Serialization_ decconstructors with 1 or 0 _out_ parameters are also supported. Serialization code for making use of the `DateTimeExtensions` class looks like this:
+
+```C#
+var nameMappings = new NameAndTypeMappings();
+var serializer = new StringSerializer(nameAndTypeMappings: nameMappings);
+nameMappings.MapExtensionMethodDestructorsFromType(typeof(DateTimeExtensions));
+nameMappings.MapTermNameToType<DateTime>("datetime");
+DateTime INPUT_DESERIALIZE = new DateTime(2020, 7, 8);
+var outputSerialized = serializer.Serialize(INPUT_DESERIALIZE);
+```
+
+# Building expression trees
+
+With all of the above features in place, it is possible to create expression trees. A full example of how this might work is given in the sample console app in this repository.
+
+The first step would be to define a base class or interface for expressions. In the sample app, this is done in the `BinaryOperator` class. After this, the child classes used to represent expression tree operators need to be registered, ex.:
+
+```C#
+var nameMappings = new NameAndTypeMappings();
+var serializer = new StringSerializer(nameAndTypeMappings: nameMappings);
+nameMappings.MapTermNameToType<Add>("add");
+nameMappings.MapTermNameToType<Sub>("sub");
+nameMappings.MapTermNameToType<Mul>("mul");
+nameMappings.MapTermNameToType<Div>("div");
+```
+
+In this code sample, the `Add`, `Sub`, `Mul`, and `Div` subclasses inherits from `BinaryOperator`. Each of this example, the subclasses also implement an interface called `IExpression` defining the `Calculate` method.
+
+All of this could be used for deserialization and executing the expression tree:
+
+```C#
+string INPUT_DESERIALIZE = "root: div(mul(4,sub(add(3,2),1)),5);";
+IExpression expr = serializer.Deserialize<IExpression>(INPUT_DESERIALIZE);
+Console.WriteLine($"Result = {expr.Calculate()}");
+```
+
 # Installation via Nuget
 
 See [https://www.nuget.org/packages/Trl.Serialization/](https://www.nuget.org/packages/Trl.Serialization/) for nuget package.

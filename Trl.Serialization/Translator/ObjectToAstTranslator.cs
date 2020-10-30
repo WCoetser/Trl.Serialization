@@ -27,9 +27,9 @@ namespace Trl.Serialization.Translator
         internal StatementList BuildAst<TObject>(TObject inputObject, string rootLabel)
         {
             var termDatabase = new TermDatabase();
-            Symbol root = BuildAstForObject(inputObject, termDatabase);
-            termDatabase.Writer.LabelTerm(root.TermIdentifier.Value, rootLabel);
-            termDatabase.Writer.SetAsRootTerm(root.TermIdentifier.Value);
+            var root = BuildAstForObject(inputObject, termDatabase);
+            termDatabase.Writer.LabelTerm(root, rootLabel);
+            termDatabase.Writer.SetAsRootTerm(root);
             termDatabase.MutateDatabase(new ConvertCommonTermsToRewriteRules());
             return termDatabase.Reader.ReadCurrentFrame();
         }
@@ -39,8 +39,7 @@ namespace Trl.Serialization.Translator
         /// </summary>
         /// <param name="inputObject">Object to load</param>
         /// <param name="termDatabase">Database to load it into.</param>
-        /// <returns>Unique integer mapped ID of term.</returns>
-        private Symbol BuildAstForObject(object inputObject, TermDatabase termDatabase)
+        private Term BuildAstForObject(object inputObject, TermDatabase termDatabase)
         {
             var knownConstant = _nameAndTypeMappings.GetIdentifierForConstantValue(inputObject);
             if (!string.IsNullOrWhiteSpace(knownConstant))
@@ -54,7 +53,7 @@ namespace Trl.Serialization.Translator
             // NB: IEnumerable must be after string because string is IEnumerable
             else if (inputObject is IEnumerable)
             {
-                var listMembers = new List<Symbol>();
+                var listMembers = new List<Term>();
                 var inputEnumerable = (IEnumerable)inputObject;
                 foreach (var item in inputEnumerable)
                 {
@@ -72,13 +71,13 @@ namespace Trl.Serialization.Translator
             }
         }
 
-        private Symbol GenerateNonAcTerm(object inputObject, TermDatabase termDatabase)
+        private Term GenerateNonAcTerm(object inputObject, TermDatabase termDatabase)
         {
             return GenerateNonAcTermWithoutFieldMappings(inputObject, termDatabase) 
                 ?? GenerateNonAcTermWithFieldMappings(inputObject, termDatabase);
         }
 
-        private Symbol GenerateNonAcTermWithoutFieldMappings(object inputObject, TermDatabase termDatabase)
+        private Term GenerateNonAcTermWithoutFieldMappings(object inputObject, TermDatabase termDatabase)
         {
             var type = inputObject.GetType();
 
@@ -98,18 +97,18 @@ namespace Trl.Serialization.Translator
             deconstructor.Invoke(inputObject, parms);
 
             // Extract "out" parameter values
-            List<Symbol> arguments = new List<Symbol>();
+            var arguments = new List<Term>();
             int startIndex = isExtensionMethod ? 1 : 0;
             for (int i = startIndex; i < parms.Length; i++) 
             {
                 arguments.Add(BuildAstForObject(parms[i], termDatabase));
             }
             var termName = _nameAndTypeMappings.GetTermNameForType(type);
-            var metaData = new Dictionary<TermMetaData, Symbol>();
+            var metaData = new Dictionary<TermMetaData, Term>();
             return termDatabase.Writer.StoreNonAcTerm(termName, arguments.ToArray(), metaData);
         }
 
-        private Symbol GenerateNonAcTermWithFieldMappings(object inputObject, TermDatabase termDatabase)
+        private Term GenerateNonAcTermWithFieldMappings(object inputObject, TermDatabase termDatabase)
         {
             // Assume we are creating a non ac term in the default case
             var type = inputObject.GetType();
@@ -119,8 +118,8 @@ namespace Trl.Serialization.Translator
                                 .OrderBy(p => p.Name);
 
             // Build arguments
-            var fieldMappingIdentifiers = new List<Symbol>();
-            var arguments = new List<Symbol>();
+            var fieldMappingIdentifiers = new List<Term>();
+            var arguments = new List<Term>();
             foreach (var prop in properties)
             {
                 var value = prop.GetValue(inputObject);
@@ -140,7 +139,7 @@ namespace Trl.Serialization.Translator
                 }
             }
 
-            Dictionary<TermMetaData, Symbol> metadata = new Dictionary<TermMetaData, Symbol>();
+            Dictionary<TermMetaData, Term> metadata = new Dictionary<TermMetaData, Term>();
             var fieldList = termDatabase.Writer.StoreTermList(fieldMappingIdentifiers.ToArray());
             metadata.Add(TermMetaData.ClassMemberMappings, fieldList);
 

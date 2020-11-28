@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Trl.TermDataRepresentation.Database;
@@ -14,7 +13,7 @@ namespace Trl.Serialization.Translator
     /// <summary>
     /// Converts an object into an AST, which can be converted into a string.
     /// </summary>
-    internal class ObjectToAstTranslator
+    public class ObjectToAstTranslator
     {
         public const BindingFlags Bindings = BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
         private readonly NameAndTypeMappings _nameAndTypeMappings;
@@ -27,7 +26,7 @@ namespace Trl.Serialization.Translator
         internal StatementList BuildAst<TObject>(TObject inputObject, string rootLabel)
         {
             var termDatabase = new TermDatabase();
-            var root = BuildAstForObject(inputObject, termDatabase);
+            var root = BuildTermForObject(inputObject, termDatabase);
             termDatabase.Writer.LabelTerm(root, rootLabel);
             termDatabase.Writer.SetAsRootTerm(root);
             termDatabase.MutateDatabase(new ConvertCommonTermsToRewriteRules());
@@ -35,11 +34,12 @@ namespace Trl.Serialization.Translator
         }
 
         /// <summary>
-        /// Loads the object into the database, returns the ID.
+        /// Loads the object into the database, returns the term that represents it.
         /// </summary>
         /// <param name="inputObject">Object to load</param>
         /// <param name="termDatabase">Database to load it into.</param>
-        private Term BuildAstForObject(object inputObject, TermDatabase termDatabase)
+        /// <returns>Database term created for object</returns>
+        public Term BuildTermForObject(object inputObject, TermDatabase termDatabase)
         {
             var knownConstant = _nameAndTypeMappings.GetIdentifierForConstantValue(inputObject);
             if (!string.IsNullOrWhiteSpace(knownConstant))
@@ -57,7 +57,7 @@ namespace Trl.Serialization.Translator
                 var inputEnumerable = (IEnumerable)inputObject;
                 foreach (var item in inputEnumerable)
                 {
-                    listMembers.Add(BuildAstForObject(item, termDatabase));
+                    listMembers.Add(BuildTermForObject(item, termDatabase));
                 }
                 return termDatabase.Writer.StoreTermList(listMembers.ToArray());
             }
@@ -101,7 +101,7 @@ namespace Trl.Serialization.Translator
             int startIndex = isExtensionMethod ? 1 : 0;
             for (int i = startIndex; i < parms.Length; i++) 
             {
-                arguments.Add(BuildAstForObject(parms[i], termDatabase));
+                arguments.Add(BuildTermForObject(parms[i], termDatabase));
             }
             var termName = _nameAndTypeMappings.GetTermNameForType(type);
             var metaData = new Dictionary<TermMetaData, Term>();
@@ -126,7 +126,7 @@ namespace Trl.Serialization.Translator
                 if (value != null)
                 {
                     fieldMappingIdentifiers.Add(termDatabase.Writer.StoreAtom(prop.Name, SymbolType.Identifier));
-                    arguments.Add(BuildAstForObject(value, termDatabase));
+                    arguments.Add(BuildTermForObject(value, termDatabase));
                 }
             }
             foreach (var field in fields)
@@ -135,7 +135,7 @@ namespace Trl.Serialization.Translator
                 if (value != null)
                 {
                     fieldMappingIdentifiers.Add(termDatabase.Writer.StoreAtom(field.Name, SymbolType.Identifier));
-                    arguments.Add(BuildAstForObject(value, termDatabase));
+                    arguments.Add(BuildTermForObject(value, termDatabase));
                 }
             }
 
